@@ -1,0 +1,8 @@
+version: "2"
+services:
+  cora_node6:
+    image: node:latest
+    container_name: "poloniex"
+    command: tail -f /dev/null
+    volumes:
+      - ./:/var/poloniex/
