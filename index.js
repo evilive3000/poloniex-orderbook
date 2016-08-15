@@ -30,7 +30,7 @@ class OrderBook {
   }
 
   /**
-   * Старт синхронизации и прослушки таблицы ордеров.
+   * Start listening and syncing orderbook
    *
    * @returns {OrderBook}
    */
@@ -41,20 +41,17 @@ class OrderBook {
       err && log(err);
       // почему-то все что происходит в методе orderTrade не вываливается при ошибках,
       // поэтому пришлось обвернуть все явным трай-кетчем, и вываливать ошбику самостоятельно.
-      try {
-        this._onOrderTrade(res);
-      } catch (e) {
-        log(e);
-      }
+      // for debug purposes
+      try { this._onOrderTrade(res); } catch (e) { log(e); }
     }, true);
 
-    // после того как подписались на рассылку изменений, загружаем всю таблицу целиком.
+    // after we subscribe for poloniex push events we reload orderbook.
     setTimeout(this.resetOrderBook.bind(this), 1000);
     return this;
   }
 
   /**
-   * Сброс/загрузка полной таблицы ордеров
+   * Reset orderbook
    */
   resetOrderBook() {
     if (this._resetInProgress) return;
@@ -65,7 +62,6 @@ class OrderBook {
       if (err) return log(err);
       _.extend(this, _.pick(res, ['asks', 'bids', 'seq', 'isFrozen']));
       // clear stale data
-      // удаляем протухшие данные об обновлениях
       for (const seq in this.buffer) {
         if (seq <= this.seq)
           delete this.buffer[seq];
@@ -76,25 +72,27 @@ class OrderBook {
   }
 
   /**
+   * Push message handler
    *
    * @param res
    * @private
    */
   _onOrderTrade(res) {
     for (const order of res) {
-      // игнорируем события связанные с историей
+      // ignore history events
       if (order.updateType == 'newTrade')
         continue;
 
       if (!(order.seq in this.buffer)) {
         this.buffer[order.seq] = [];
       }
-      // дописываем обновления в буфер
+      // push update into buffer
       this.buffer[order.seq].push(order);
     }
 
-    // а теперь читаем из буфера и обновляем
-    // таблицу ордеров в правильном порядке
+    // now we read from the buffer and
+    // increment orderbook sequentially.
+    // order by order according to its `seq`
     this._processBuffer();
   }
 
@@ -112,11 +110,11 @@ class OrderBook {
       delete this.buffer[this.seq];
     }
 
-    // если вдруг буфер раздуло до больших размеров
-    // то скорее всего произошел какой-то сбой,
-    // и надо выяснить и починить, но можно поступить проще:
-    // можно просто перезагрузить заново таблицу ордеров, и
-    // накатить на неё накопившиеся изменения.
+    // When the buffer grows too big, it may be some kind of issue,
+    // and in the perfect world we should investigate and fix it,
+    // but in our case it's much easier to reset orderbook and
+    // implement all accumulated updates again.
+    // Poloniex's frontend works the same way "reset and reload".
     if (!this._resetInProgress && _.size(this.buffer) > 25) {
       log(`Buffer is too fat: ${_.size(this.buffer)}`);
       this.resetOrderBook();
@@ -125,11 +123,15 @@ class OrderBook {
 
 
   /**
-   * Получаем индекс позиции ордера в таблице. Если такого ордера в таблице небыло, то
-   * полученный индекс показывает позицию на который можно вставить данный ордер, не
-   * нарушив сортировки. Для определения индекса используется бинарный поиск, а также
-   * учитывается последовательность сортировки для разного типа ордеров `asks` и `bids`
-   * так как один идет по возрастанию, друго по убыванию.
+   * Returns index of order in orderbook.
+   * If it is new order, then index is the
+   * position we should insert it to keep
+   * the table sorted.
+   *
+   * I'm using binary search to get the index,
+   * so it's as fast as possible. Also we have
+   * take into account the type of order, because
+   * it's different sort order for `asks` and `bids`.
    *
    * @param order
    * @returns {number}
@@ -145,7 +147,7 @@ class OrderBook {
   }
 
   /**
-   * Событие ордера требующее удалить указанный ордер
+   * Handle remove orders
    *
    * @param order
    * @private
@@ -165,7 +167,7 @@ class OrderBook {
   }
 
   /**
-   * Событие обновления ордера
+   * Handle update orders
    *
    * @param order
    * @private
