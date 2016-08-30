@@ -1,12 +1,11 @@
 "use strict";
 
-const polo = require('poloniex-unofficial');
-const _ = require('lodash');
+const orderBook = require("./libs/orderbook");
+const subscribe = require("./libs/marketevents");
 
-const poloPush = new polo.PushWrapper();
-const poloPublic = new polo.PublicWrapper();
+const _ = require("lodash");
 
-const DEBUG = 'true' === _.get(process.env, 'POLONIEX_DEBUG', false);
+const DEBUG = "true" === _.get(process.env, "POLONIEX_DEBUG", false);
 
 const log = function () {
   DEBUG && console.log.apply(console, arguments);
@@ -19,75 +18,76 @@ class OrderBook {
    * @param pair
    */
   constructor(pair) {
-    this.pair = (_.isArray(pair) ? pair.join('_') : pair).toUpperCase();
+    this.pair = (_.isArray(pair) ? pair.join("_") : pair).toUpperCase();
     this.buffer = {};
     this.asks = [];
     this.bids = [];
     this.seq = null;
     this.isFrozen = null;
-    this._started = false;
+    this._started = null;
     this.depth = 9999999;
+    // overwrite methods with locked context
+    _.bindAll(this, ["_onOrderTrade", "resetOrderBook"]);
   }
 
   /**
    * Start listening and syncing orderbook
    *
-   * @returns {OrderBook}
+   * @returns {Promise}
    */
   start() {
-    if (this._started) return this;
-    this._started = true;
-    poloPush.orderTrade(this.pair, (err, res) => {
-      err && log(err);
-      // почему-то все что происходит в методе orderTrade не вываливается при ошибках,
-      // поэтому пришлось обвернуть все явным трай-кетчем, и вываливать ошбику самостоятельно.
-      // for debug purposes
-      try { this._onOrderTrade(res); } catch (e) { log(e); }
-    }, true);
+    if (this._started) return this._started;
 
-    // after we subscribe for poloniex push events we reload orderbook.
-    setTimeout(this.resetOrderBook.bind(this), 1000);
-    return this;
+    // check if this pair is valid
+    // subscribe for the push events
+    // and reset the orderbook with full data
+    return this._started = orderBook(this.pair, 1)
+      .then(() => subscribe(this.pair, this._onOrderTrade))
+      .then(this.resetOrderBook);
   }
 
   /**
    * Reset orderbook
+   *
+   * @returns {Promise}
    */
   resetOrderBook() {
-    if (this._resetInProgress) return;
-    this._resetInProgress = true;
+    if (this._resetInProgress)
+      return this._resetInProgress;
     this.seq = null;
 
-    poloPublic.returnOrderBook(this.pair, this.depth, (err, res) => {
-      if (err) return log(err);
-      _.extend(this, _.pick(res, ['asks', 'bids', 'seq', 'isFrozen']));
+    this._resetInProgress = orderBook(this.pair, this.depth).then(ob => {
+      _.extend(this, ob);
       // clear stale data
-      for (const seq in this.buffer) {
+      for (const seq of _.keys(this.buffer)) {
         if (seq <= this.seq)
           delete this.buffer[seq];
       }
       log(`Reset Order Book: ${this.pair}`);
-      this._resetInProgress = false;
+      delete this._resetInProgress;
     });
+
+    return this._resetInProgress;
   }
 
   /**
    * Push message handler
    *
    * @param res
+   * @param seq
    * @private
    */
-  _onOrderTrade(res) {
+  _onOrderTrade(res, {seq}) {
     for (const order of res) {
       // ignore history events
-      if (order.updateType == 'newTrade')
+      if (order.type == "newTrade")
         continue;
 
-      if (!(order.seq in this.buffer)) {
-        this.buffer[order.seq] = [];
+      if (!(seq in this.buffer)) {
+        this.buffer[seq] = [];
       }
       // push update into buffer
-      this.buffer[order.seq].push(order);
+      this.buffer[seq].push(order);
     }
 
     // now we read from the buffer and
@@ -105,7 +105,7 @@ class OrderBook {
       this.seq++;
       for (const order of this.buffer[this.seq]) {
         // _orderBookRemove | _orderBookModify
-        this['_' + order.updateType](order);
+        this['_' + order.type](order);
       }
       delete this.buffer[this.seq];
     }
@@ -138,11 +138,11 @@ class OrderBook {
    * @private
    */
   _getIndex(order) {
-    switch (order.type) {
-      case 'ask':
-        return _.sortedIndexBy(this.asks, [order.rate], o => parseFloat(o[0]));
-      case 'bid':
-        return _.sortedIndexBy(this.bids, [order.rate], o => -parseFloat(o[0]));
+    switch (order.data.type) {
+      case "ask":
+        return _.sortedIndexBy(this.asks, [order.data.rate], o => parseFloat(o[0]));
+      case "bid":
+        return _.sortedIndexBy(this.bids, [order.data.rate], o => -parseFloat(o[0]));
     }
   }
 
@@ -153,13 +153,13 @@ class OrderBook {
    * @private
    */
   _orderBookRemove(order) {
-    const type = order.type + 's';
+    const type = order.data.type + "s";
     const index = this._getIndex(order);
     const old = this[type][index];
-    if (old && old[0] === order.rate) {
+    if (old && old[0] === order.data.rate) {
       this[type].splice(index, 1);
     } else {
-      log(':::_orderBookRemove:::');
+      log(":::_orderBookRemove:::");
       log("We should never get here, but if we got let me know!");
       log(index, order, old);
       process.exit();
@@ -173,13 +173,14 @@ class OrderBook {
    * @private
    */
   _orderBookModify(order) {
-    const type = order.type + 's';
+    const data = order.data;
+    const type = data.type + "s";
     const index = this._getIndex(order);
     const old = this[type][index];
-    if (old && old[0] === order.rate) {
-      old[1] = parseFloat(order.amount);
+    if (old && old[0] === data.rate) {
+      old[1] = parseFloat(data.amount);
     } else {
-      this[type].splice(index, 0, [order.rate, parseFloat(order.amount)]);
+      this[type].splice(index, 0, [data.rate, parseFloat(data.amount)]);
     }
   }
 }

@@ -1,11 +1,11 @@
 {
   "name": "poloniex-orderbook",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Poloniex's orderbook manager",
   "main": "index.js",
   "dependencies": {
-    "lodash": "^4.13.1",
-    "poloniex-unofficial": "^1.1.1"
+    "autobahn": "^0.10.1",
+    "lodash": "4.x"
   },
   "devDependencies": {},
   "scripts": {
@@ -14,7 +14,11 @@
   "keywords": [
     "poloniex",
     "orderbook",
-    "bitcoin"
+    "bitcoin",
+    "ethereum",
+    "cryptocurrency",
+    "exchange",
+    "arbitrage"
   ],
   "author": "evilive3000",
   "license": "ISC",
