@@ -26,9 +26,10 @@ const polobook = new PoloBook(['btc', 'eth']);
 const polobook = new PoloBook('btc_eth');
 ```
 
-and just start listening orderbook udpdate:
+and just start listening orderbook udpdate. `start` returns ES6 Promise, so you can do your work in `then`
 ```javascript
-polobook.start();
+polobook.start()
+  .then(() => { /* polobook is synced and ready */ });
 ```
 
 now you can watch updates:
@@ -38,8 +39,7 @@ console.log(polobook.bids)
 ```
 
 #####Note:
- * Data will not be available right after calling `start()`, you should delay for a few seconds.
- * You can create different pairs orderbooks, they will work ok simultaneously.
+ * You can create different pairs orderbooks, they will work ok simultaneously (see [examples](https://github.com/evilive3000/poloniex-orderbook/tree/master/examples) )
  * This module written with `ES6` syntax. Check your nodejs version if you get some errors first.
 
 Example
@@ -48,51 +48,38 @@ Example
 "use strict";
 
 const PoloBook = require('poloniex-orderbook');
+const polobook = new PoloBook("btc_xmr");
 
-const polobook = (new PoloBook('btc_eth')).start();
-
-(function run() {
-  console.log(`---===${new Date().toLocaleTimeString()}===---`);
-
-  for(const type of ['asks', 'bids']) {
-    console.log(`::::::${type}::::::`);
-    for(const [rate, amount] of polobook[type].slice(0, 10)) {
-      console.log(`${rate}: ${amount}`);
-    }
-  }
-
-  setTimeout(run, 1000);
-})();
+polobook.start().then(() => {
+  console.log(polobook.asks.slice(0, 10));
+  console.log('-------------------------');
+  console.log(polobook.bids.slice(0, 10));
+}).catch(error => console.log(error));
 ```
 
 you should get output like this:
 ```Shell
----===7:50:44 AM===---
-::::::asks::::::
-::::::bids::::::
----===7:50:45 AM===---
-::::::asks::::::
-0.01694686: 110.54001955
-0.01694853: 0.400053
-0.01694860: 0.800092
-0.01694883: 4.15350764
-0.01694884: 0.04
-0.01695203: 0.400053
-0.01695568: 0.48
-0.01695853: 0.400044
-0.01695879: 4.16
-0.01695931: 0.2
-::::::bids::::::
-0.01694198: 4.24
-0.01693548: 0.43
-0.01692898: 4.15
-0.01692583: 0.40164053
-0.01692311: 0.01742012
-0.01692248: 1.88
-0.01691966: 0.40193044
-0.01691200: 111.7489
-0.01690947: 3.13
-0.01689688: 0.40253048
+[ [ '0.01431999', 0.77974162 ],
+  [ '0.01432000', 115.71500042 ],
+  [ '0.01432001', 47.99559466 ],
+  [ '0.01432215', 5.06983173 ],
+  [ '0.01434657', 2.61260333 ],
+  [ '0.01434658', 4 ],
+  [ '0.01435000', 13.92148 ],
+  [ '0.01435385', 23.29175115 ],
+  [ '0.01436000', 0.5 ],
+  [ '0.01436017', 87.95229339 ] ]
+-------------------------
+[ [ '0.01420000', 558.54511746 ],
+  [ '0.01418879', 4.639175 ],
+  [ '0.01418368', 0.65352199 ],
+  [ '0.01416569', 5.60436236 ],
+  [ '0.01416450', 32.03058816 ],
+  [ '0.01416000', 0.12412218 ],
+  [ '0.01415001', 504.724 ],
+  [ '0.01415000', 407.53385512 ],
+  [ '0.01413966', 0.84143041 ],
+  [ '0.01413935', 191.98591077 ] ]
 ```
 
 Contacts
