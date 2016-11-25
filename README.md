@@ -38,6 +38,26 @@ console.log(polobook.asks)
 console.log(polobook.bids)
 ```
 
+if you need to stop listening for updates from poloniex server, just use `stop` method:
+```javascript
+polobook.stop()
+  .then(() => { /* polobook has data but it stop syncing it with server */ });
+```
+
+for closing WAMP connection use static method `PoloBook.close`
+```javascript
+const PoloBook = require('poloniex-orderbook');
+const polobook = new PoloBook(['btc', 'eth']);
+
+polobook.start()
+  .then(() => { 
+        // you've done all stuff and want to finish
+        PoloBook.close()
+   });
+```
+One connection is shared with all orderbook instances, so if you call `PoloBook.close()` you'll loose connection for all instances.
+If you want to stop listening only for current orderbook use `stop`.
+
 #####Note:
  * You can create different pairs orderbooks, they will work ok simultaneously (see [examples](https://github.com/evilive3000/poloniex-orderbook/tree/master/examples) )
  * This module written with `ES6` syntax. Check your nodejs version if you get some errors first.
@@ -54,7 +74,9 @@ polobook.start().then(() => {
   console.log(polobook.asks.slice(0, 10));
   console.log('-------------------------');
   console.log(polobook.bids.slice(0, 10));
-}).catch(error => console.log(error));
+})
+  .then(PoloBook.close)
+  .catch(error => console.log(error));
 ```
 
 you should get output like this:
