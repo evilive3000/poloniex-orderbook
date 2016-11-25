@@ -1,14 +1,14 @@
 "use strict";
 
 const orderBook = require("./libs/orderbook");
-const subscribe = require("./libs/marketevents");
+const {subscribe, unsubscribe, closeConnection} = require("./libs/marketevents");
 
 const _ = require("lodash");
 
 const DEBUG = "true" === _.get(process.env, "POLONIEX_DEBUG", false);
 
 const log = function () {
-  DEBUG && console.log.apply(console, arguments);
+  DEBUG && console.log.apply(console, [new Date(), ...arguments]);
 };
 
 class OrderBook {
@@ -36,14 +36,32 @@ class OrderBook {
    * @returns {Promise}
    */
   start() {
+    log('Start listening orderbook');
     if (this._started) return this._started;
 
     // check if this pair is valid
     // subscribe for the push events
     // and reset the orderbook with full data
     return this._started = orderBook(this.pair, 1)
-      .then(() => subscribe(this.pair, this._onOrderTrade))
+      .then(() => this._subscription = subscribe(this.pair, this._onOrderTrade))
       .then(this.resetOrderBook);
+  }
+
+  /**
+   * Stop listening orderbook
+   *
+   * @returns {*}
+   */
+  stop() {
+    if (!this._subscription)
+      return Promise.resolve();
+
+    return this._subscription.then(subscription => {
+      log('Stop listening orderbook');
+      unsubscribe(subscription);
+      delete this._started;
+      delete this._subscription;
+    });
   }
 
   /**
@@ -56,16 +74,18 @@ class OrderBook {
       return this._resetInProgress;
     this.seq = null;
 
-    this._resetInProgress = orderBook(this.pair, this.depth).then(ob => {
-      _.extend(this, ob);
-      // clear stale data
-      for (const seq of _.keys(this.buffer)) {
-        if (seq <= this.seq)
-          delete this.buffer[seq];
-      }
-      log(`Reset Order Book: ${this.pair}`);
-      delete this._resetInProgress;
-    });
+    this._resetInProgress = orderBook(this.pair, this.depth)
+      .then(ob => {
+        _.extend(this, ob);
+        // clear stale data
+        for (const seq of _.keys(this.buffer)) {
+          if (seq <= this.seq) {
+            delete this.buffer[seq];
+          }
+        }
+        log(`Reset Order Book: ${this.pair}`);
+        delete this._resetInProgress;
+      });
 
     return this._resetInProgress;
   }
@@ -78,6 +98,7 @@ class OrderBook {
    * @private
    */
   _onOrderTrade(res, {seq}) {
+    log(`Push message handler: ${seq}`);
     for (const order of res) {
       // ignore history events
       if (order.type == "newTrade")
@@ -182,6 +203,11 @@ class OrderBook {
     } else {
       this[type].splice(index, 0, [data.rate, parseFloat(data.amount)]);
     }
+  }
+
+  static close(){
+    log('Close connection');
+    closeConnection();
   }
 }
 

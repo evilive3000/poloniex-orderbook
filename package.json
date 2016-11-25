@@ -4,7 +4,7 @@
   "description": "Poloniex's orderbook manager",
   "main": "index.js",
   "dependencies": {
-    "autobahn": "^0.10.1",
+    "autobahn": "^0.11.1",
     "lodash": "4.x"
   },
   "devDependencies": {},

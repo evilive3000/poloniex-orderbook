@@ -15,12 +15,11 @@ let connectionPromise;
  */
 function poloConnect() {
   return new Promise((resolve, reject) => {
-    connection.onopen = (session, details) => {
-      // console.log(details);
-      resolve(session);
-    };
+    connection.onopen = (session, details) => resolve(session);
 
     connection.onclose = (reason, details) => {
+      if (reason === 'closed') return;
+
       console.log("REASON", reason);
       console.log("DETAILS", details);
       reject(reason);
@@ -32,8 +31,8 @@ function poloConnect() {
 
 /**
  *
- * @param pair
- * @param handler
+ * @param {String} pair
+ * @param {Function} handler
  * @returns {Promise}
  */
 function subscribe(pair, handler) {
@@ -46,12 +45,26 @@ function subscribe(pair, handler) {
   );
 }
 
-module.exports = subscribe;
+/**
+ *
+ * @param {Subscription} subscription
+ * @returns {Promise}
+ */
+function unsubscribe(subscription) {
+  if (connectionPromise instanceof Promise) {
 
-// subscribe("BTC_XMR", (args, kwargs) => console.log(args, kwargs))
-//   .catch(e => console.log('e', e));
+    return connectionPromise.then(
+      session => subscription.unsubscribe()
+    )
+  }
+}
 
+/**
+ *
+ */
+function closeConnection() {
+  connection.close();
+  connectionPromise = null;
+}
 
-// subscribe("BTC_ETH", (args, kwargs) => console.log('BTC_ETH', args.length));
-// subscribe("BTC_ETC", (args, kwargs) => console.log('BTC_ETC', args, kwargs));
-// subscribe("BTC_XMR", (args, kwargs) => console.log('BTC_XMR', args.length));
+module.exports = {subscribe, unsubscribe, closeConnection};
