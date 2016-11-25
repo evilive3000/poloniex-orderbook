@@ -8,4 +8,6 @@ polobook.start().then(() => {
   console.log(polobook.asks.slice(0, 10));
   console.log('-------------------------');
   console.log(polobook.bids.slice(0, 10));
-}).catch(error => console.log(error));
+})
+  .then(PoloBook.close)
+  .catch(error => console.log(error));

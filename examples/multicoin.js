@@ -3,7 +3,7 @@
 const PoloBook = require("../index");
 
 const bookETH = new PoloBook("btc_eth");
-const bookXMR = new PoloBook("btc_xmr");
+const bookXMR = new PoloBook("USDT_ETC");
 
 // the function will run every 0.25 seconds
 // and print current orderbook's top-10 orders
