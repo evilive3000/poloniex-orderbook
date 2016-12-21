@@ -1,6 +1,6 @@
 {
   "name": "poloniex-orderbook",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "Poloniex's orderbook manager",
   "main": "index.js",
   "dependencies": {
