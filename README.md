@@ -58,6 +58,12 @@ polobook.start()
 One connection is shared with all orderbook instances, so if you call `PoloBook.close()` you'll loose connection for all instances.
 If you want to stop listening only for current orderbook use `stop`.
 
+From version `2.2` you cun listen on polobook's event `update` to get notified when push event comes
+```javascript
+polobook.on('update', res => { console.log(res, polobook.asks.slice(0,1)});
+polobook.start().catch(err => console.log(err));
+``` 
+ 
 #####Note:
  * You can create different pairs orderbooks, they will work ok simultaneously (see [examples](https://github.com/evilive3000/poloniex-orderbook/tree/master/examples) )
  * This module written with `ES6` syntax. Check your nodejs version if you get some errors first.
