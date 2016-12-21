@@ -1,13 +1,15 @@
 {
   "name": "poloniex-orderbook",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Poloniex's orderbook manager",
   "main": "index.js",
   "dependencies": {
     "autobahn": "^0.11.1",
     "lodash": "4.x"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "eslint": "^3.12.2"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

@@ -1,4 +1,3 @@
-"use strict";
 
 // https://poloniex.com/public?command=returnOrderBook&currencyPair=BTC_NXT&depth=10
 

@@ -41,7 +41,7 @@ console.log(polobook.bids)
 if you need to stop listening for updates from poloniex server, just use `stop` method:
 ```javascript
 polobook.stop()
-  .then(() => { /* polobook has data but it stop syncing it with server */ });
+  .then(() => { /* polobook has data but it stopped syncing it with server */ });
 ```
 
 for closing WAMP connection use static method `PoloBook.close`

@@ -1,0 +1,12 @@
+{
+  "env": {
+    "es6": true,
+    "node": true
+  },
+  "extends": "eslint:recommended",
+  "rules": {
+    "semi": ["error", "always", {"omitLastInOneLineBlock": true}],
+    "no-var": ["error"],
+    "prefer-const": ["error"]
+  }
+}

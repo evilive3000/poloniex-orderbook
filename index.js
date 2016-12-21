@@ -1,5 +1,4 @@
-"use strict";
-const EventEmitter = require('events').EventEmitter
+const EventEmitter = require('events').EventEmitter;
 const orderBook = require("./libs/orderbook");
 const {subscribe, unsubscribe, closeConnection} = require("./libs/marketevents");
 
@@ -11,14 +10,14 @@ const log = function () {
   DEBUG && console.log.apply(console, [new Date(), ...arguments]);
 };
 
-class OrderBook extends EventEmitter{
+class OrderBook extends EventEmitter {
 
   /**
    *
    * @param pair
    */
   constructor(pair) {
-    super()
+    super();
     this.pair = (_.isArray(pair) ? pair.join("_") : pair).toUpperCase();
     this.buffer = {};
     this.asks = [];
@@ -100,7 +99,7 @@ class OrderBook extends EventEmitter{
    */
   _onOrderTrade(res, {seq}) {
     log(`Push message handler: ${seq}`);
-    this.emit('update', res)
+    this.emit('update', res);
     for (const order of res) {
       // ignore history events
       if (order.type == "newTrade")
