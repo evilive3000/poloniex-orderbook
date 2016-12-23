@@ -4,5 +4,6 @@ services:
     image: node:latest
     container_name: "poloniex"
     command: tail -f /dev/null
+    working_dir: /var/poloniex
     volumes:
       - ./:/var/poloniex/

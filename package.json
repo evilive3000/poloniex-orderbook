@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "autobahn": "^0.11.1",
+    "debug": "^2.5.1",
     "lodash": "4.x"
   },
   "devDependencies": {

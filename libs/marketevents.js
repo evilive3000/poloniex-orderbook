@@ -1,4 +1,5 @@
 const autobahn = require("autobahn");
+const debug = require('debug')('polobook:connection');
 
 const connection = new autobahn.Connection({
   url: "wss://api.poloniex.com",
@@ -16,13 +17,14 @@ function poloConnect() {
     connection.onopen = (session, details) => resolve(session);
 
     connection.onclose = (reason, details) => {
+      debug('onClose event');
       if (reason === 'closed') return;
-
-      console.log("REASON", reason);
-      console.log("DETAILS", details);
+      debug("REASON", reason);
+      debug("DETAILS", details);
       reject(reason);
     };
 
+    debug('Open connection');
     connection.open();
   });
 }
@@ -38,6 +40,7 @@ function subscribe(pair, handler) {
     connectionPromise = poloConnect();
   }
 
+  debug(`Subscribe: ${pair}`);
   return connectionPromise.then(
     session => session.subscribe(pair, handler)
   );
@@ -51,9 +54,10 @@ function subscribe(pair, handler) {
 function unsubscribe(subscription) {
   if (connectionPromise instanceof Promise) {
 
+    debug(`Unsubscribe`);
     return connectionPromise.then(
       session => subscription.unsubscribe()
-    )
+    );
   }
 }
 
@@ -61,6 +65,7 @@ function unsubscribe(subscription) {
  *
  */
 function closeConnection() {
+  debug('Close connection');
   connection.close();
   connectionPromise = null;
 }

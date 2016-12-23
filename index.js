@@ -3,12 +3,7 @@ const orderBook = require("./libs/orderbook");
 const {subscribe, unsubscribe, closeConnection} = require("./libs/marketevents");
 
 const _ = require("lodash");
-
-const DEBUG = "true" === _.get(process.env, "POLONIEX_DEBUG", false);
-
-const log = function () {
-  DEBUG && console.log.apply(console, [new Date(), ...arguments]);
-};
+const debug = require('debug')('polobook');
 
 class OrderBook extends EventEmitter {
 
@@ -28,6 +23,7 @@ class OrderBook extends EventEmitter {
     this.depth = 9999999;
     // overwrite methods with locked context
     _.bindAll(this, ["_onOrderTrade", "resetOrderBook"]);
+    debug(`Create orderbook: ${this.pair}`);
   }
 
   /**
@@ -36,8 +32,8 @@ class OrderBook extends EventEmitter {
    * @returns {Promise}
    */
   start() {
-    log('Start listening orderbook');
-    if (this._started) return this._started;
+    debug(`Start orderbook: ${this.pair}`);
+    if (this._started) { return this._started }
 
     // check if this pair is valid
     // subscribe for the push events
@@ -53,15 +49,15 @@ class OrderBook extends EventEmitter {
    * @returns {*}
    */
   stop() {
-    if (!this._subscription)
-      return Promise.resolve();
+    if (!this._subscription) { return Promise.resolve() }
 
-    return this._subscription.then(subscription => {
-      log('Stop listening orderbook');
-      unsubscribe(subscription);
-      delete this._started;
-      delete this._subscription;
-    });
+    return this._subscription
+      .then(subscription => {
+        debug(`Stop orderbook: ${this.pair}`);
+        unsubscribe(subscription);
+        delete this._started;
+        delete this._subscription;
+      });
   }
 
   /**
@@ -70,8 +66,7 @@ class OrderBook extends EventEmitter {
    * @returns {Promise}
    */
   resetOrderBook() {
-    if (this._resetInProgress)
-      return this._resetInProgress;
+    if (this._resetInProgress) { return this._resetInProgress; }
     this.seq = null;
 
     this._resetInProgress = orderBook(this.pair, this.depth)
@@ -83,7 +78,7 @@ class OrderBook extends EventEmitter {
             delete this.buffer[seq];
           }
         }
-        log(`Reset Order Book: ${this.pair}`);
+        debug(`Reset orderbook: ${this.pair}`);
         delete this._resetInProgress;
       });
 
@@ -98,12 +93,13 @@ class OrderBook extends EventEmitter {
    * @private
    */
   _onOrderTrade(res, {seq}) {
-    log(`Push message handler: ${seq}`);
+    debug(`Push event came: ${seq}`);
     this.emit('update', res);
     for (const order of res) {
       // ignore history events
-      if (order.type == "newTrade")
+      if (order.type == "newTrade") {
         continue;
+      }
 
       if (!(seq in this.buffer)) {
         this.buffer[seq] = [];
@@ -123,6 +119,7 @@ class OrderBook extends EventEmitter {
    * @private
    */
   _processBuffer() {
+    debug(`Buffer seqs: [${_.keys(this.buffer).join(', ')}]`);
     while ((this.seq + 1) in this.buffer) {
       this.seq++;
       for (const order of this.buffer[this.seq]) {
@@ -138,7 +135,7 @@ class OrderBook extends EventEmitter {
     // implement all accumulated updates again.
     // Poloniex's frontend works the same way "reset and reload".
     if (!this._resetInProgress && _.size(this.buffer) > 25) {
-      log(`Buffer is too fat: ${_.size(this.buffer)}`);
+      debug(`Buffer is too fat: ${_.size(this.buffer)}`);
       this.resetOrderBook();
     }
   }
@@ -175,15 +172,16 @@ class OrderBook extends EventEmitter {
    * @private
    */
   _orderBookRemove(order) {
+    debug(`Remove order: ${JSON.stringify(order)}`);
     const type = order.data.type + "s";
     const index = this._getIndex(order);
     const old = this[type][index];
     if (old && old[0] === order.data.rate) {
       this[type].splice(index, 1);
     } else {
-      log(":::_orderBookRemove:::");
-      log("We should never get here, but if we got let me know!");
-      log(index, order, old);
+      debug(":::_orderBookRemove:::");
+      debug("We should never get here, but if we got let me know!");
+      debug({index, order, old});
       process.exit();
     }
   }
@@ -195,6 +193,7 @@ class OrderBook extends EventEmitter {
    * @private
    */
   _orderBookModify(order) {
+    debug(`Update order: ${JSON.stringify(order)}`);
     const data = order.data;
     const type = data.type + "s";
     const index = this._getIndex(order);
@@ -206,8 +205,8 @@ class OrderBook extends EventEmitter {
     }
   }
 
-  static close(){
-    log('Close connection');
+  static close() {
+    debug('Close connection');
     closeConnection();
   }
 }
