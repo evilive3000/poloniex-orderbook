@@ -80,6 +80,7 @@ class OrderBook extends EventEmitter {
         }
         debug(`Reset orderbook: ${this.pair}`);
         delete this._resetInProgress;
+        this.emit('reset');
       });
 
     return this._resetInProgress;
@@ -94,7 +95,6 @@ class OrderBook extends EventEmitter {
    */
   _onOrderTrade(res, {seq}) {
     debug(`Push event came: ${seq}`);
-    this.emit('update', res);
     for (const order of res) {
       // ignore history events
       if (order.type == "newTrade") {
@@ -112,6 +112,7 @@ class OrderBook extends EventEmitter {
     // increment orderbook sequentially.
     // order by order according to its `seq`
     this._processBuffer();
+    this.emit('update', res);
   }
 
   /**
