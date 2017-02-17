@@ -135,7 +135,7 @@ class OrderBook extends EventEmitter {
     // but in our case it's much easier to reset orderbook and
     // implement all accumulated updates again.
     // Poloniex's frontend works the same way "reset and reload".
-    if (!this._resetInProgress && _.size(this.buffer) > 25) {
+    if (!this._resetInProgress && _.size(this.buffer) > 0) {
       debug(`Buffer is too fat: ${_.size(this.buffer)}`);
       this.resetOrderBook();
     }
