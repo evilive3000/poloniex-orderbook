@@ -114,7 +114,7 @@ class Market {
   _onError(msg, info = {}) {
     Object.assign(info, {msg, channel: this.pair});
 
-    this.manager.emit(`error`, info);
+    this.manager.marketEvent(`error`, info);
   }
 
   /**
@@ -132,7 +132,7 @@ class Market {
       channel: this.pair
     };
 
-    this.manager.emit(`change`, info);
+    this.manager.marketEvent(`change`, info);
   }
 }
 

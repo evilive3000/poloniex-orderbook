@@ -101,6 +101,20 @@ class PoloManager extends EventEmitter {
       this.socket.subscribe(channel);
     })
   }
+
+  /**
+   *
+   * @param eventName
+   * @param info
+   */
+  marketEvent(eventName, info){
+    this.emit(eventName, info);
+
+    if (eventName === 'error' && info.msg == 'Wrong seq number') {
+      // reinitialize market
+      this.socket.subscribe(info.channel);
+    }
+  }
 }
 
 module.exports = PoloManager;

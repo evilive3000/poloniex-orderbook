@@ -12,9 +12,9 @@ poloman.on('change', info => {
   console.log(top5);
 });
 
-poloman.market('BTC_ETC');
+poloman.market('BTC_ETH');
 
 // 5 seconds later
 setTimeout(() => {
-  //poloman.disconnect();
+  poloman.disconnect();
 }, 5000);
