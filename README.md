@@ -2,8 +2,7 @@ Poloniex Orderbook
 ==================
 
 Module for creating and maintaining Poloniex's orderbook on server side.
-I use Push API and binary search so it must be as fast as possible.
-After inspection Poloniex's code on the `poloniex.com` can say that the module must be more robust and faster.
+Starting from `v3.0` I switched from pushAPI to WebScoket based API, it's made intaraction with `poloniex` much faster. 
 
 Installation
 ------------------
@@ -13,101 +12,98 @@ $ npm install poloniex-orderbook
 
 Usage
 -----
-Require library first
+Requires nodejs => 6.0
+
+The central part of the lib is PoloManager. This class holds socket connection and PairMarket instances, 
+and connects them between.
+
 ```javascript
-const PoloBook = require('poloniex-orderbook');
+const PoloManager = require('poloniex-orderbook');
+const poloman = new PoloManager();
+
+// call connect to initiate socket connection
+poloman.connect();
+```
+Now you can set event handlers:
+```javascript
+poloman.on('change', info => { /* info = {channel, side, rate, amount}*/});
+poloman.on('error', info => { /* info = {msg} */});
 ```
 
-create orderbook instance and provide currency pair you want to subscribe:
-```javascript        
-// currency title is case-insensetive
-const polobook = new PoloBook(['btc', 'eth']);
-// or
-const polobook = new PoloBook('btc_eth');
+initiate markets:
+```javascript
+poloman.market('BTC_ETH');
 ```
 
-and just start listening orderbook udpdate. `start` returns ES6 Promise, so you can do your work in `then`
+remove markets:
 ```javascript
-polobook.start()
-  .then(() => { /* polobook is synced and ready */ });
+poloman.remove('BTC_ETH');
 ```
 
-now you can watch updates:
+get access to markets orderbooks:
 ```javascript
-console.log(polobook.asks)
-console.log(polobook.bids)
+// take first
+poloman.market('BTC_ETH').asks[0];
+
+// top 5
+poloman.market('BTC_ETH').bids.slice(0, 5);
 ```
 
-if you need to stop listening for updates from poloniex server, just use `stop` method:
+close connection:
 ```javascript
-polobook.stop()
-  .then(() => { /* polobook has data but it stopped syncing it with server */ });
+poloman.disconnect();
 ```
-
-for closing WAMP connection use static method `PoloBook.close`
-```javascript
-const PoloBook = require('poloniex-orderbook');
-const polobook = new PoloBook(['btc', 'eth']);
-
-polobook.start()
-  .then(() => { 
-        // you've done all stuff and want to finish
-        PoloBook.close()
-   });
-```
-One connection is shared with all orderbook instances, so if you call `PoloBook.close()` you'll loose connection for all instances.
-If you want to stop listening only for current orderbook use `stop`.
-
-From version `2.2` you cun listen on polobook's event `update` to get notified when push event comes
-```javascript
-polobook.on('update', res => { console.log(res, polobook.asks.slice(0,1)});
-polobook.start().catch(err => console.log(err));
-``` 
  
-#####Note:
- * You can create different pairs orderbooks, they will work ok simultaneously (see [examples](https://github.com/evilive3000/poloniex-orderbook/tree/master/examples) )
- * This module written with `ES6` syntax. Check your nodejs version if you get some errors first.
-
+### Note:
+ * You HAVE to set Error handler otherwise the script will throw an Error and exit if error event will occur. 
+ (see: [Node.js ErrorEvents](https://nodejs.org/api/events.html#events_error_events))
+ * For debug purposes run with `DEBUG=*` variable.
+ 
 Example
 -------
 ```javascript
-"use strict";
+const PoloManager = require('poloniex-orderbook');
+const poloman = new PoloManager().connect();
 
-const PoloBook = require('poloniex-orderbook');
-const polobook = new PoloBook("btc_xmr");
+poloman.on('error', err => console.log(err));
 
-polobook.start().then(() => {
-  console.log(polobook.asks.slice(0, 10));
-  console.log('-------------------------');
-  console.log(polobook.bids.slice(0, 10));
-})
-  .then(PoloBook.close)
-  .catch(error => console.log(error));
+poloman.on('change', info => {
+  const {channel, side} = info;
+  const market = poloman.market(channel);
+  const top5 = market[side].slice(0, 5);
+
+  console.log(`${side.toUpperCase()} :: ${market.seq}`);
+  console.log(top5);
+});
+
+poloman.market('BTC_ETC');
+
+// 5 seconds later
+setTimeout(() => {
+  //poloman.disconnect();
+}, 5000);
 ```
 
-you should get output like this:
+you should get the output:
 ```Shell
-[ [ '0.01431999', 0.77974162 ],
-  [ '0.01432000', 115.71500042 ],
-  [ '0.01432001', 47.99559466 ],
-  [ '0.01432215', 5.06983173 ],
-  [ '0.01434657', 2.61260333 ],
-  [ '0.01434658', 4 ],
-  [ '0.01435000', 13.92148 ],
-  [ '0.01435385', 23.29175115 ],
-  [ '0.01436000', 0.5 ],
-  [ '0.01436017', 87.95229339 ] ]
--------------------------
-[ [ '0.01420000', 558.54511746 ],
-  [ '0.01418879', 4.639175 ],
-  [ '0.01418368', 0.65352199 ],
-  [ '0.01416569', 5.60436236 ],
-  [ '0.01416450', 32.03058816 ],
-  [ '0.01416000', 0.12412218 ],
-  [ '0.01415001', 504.724 ],
-  [ '0.01415000', 407.53385512 ],
-  [ '0.01413966', 0.84143041 ],
-  [ '0.01413935', 191.98591077 ] ]
+ASKS :: 132227424
+[ [ '0.00178668', '412.77676591' ],
+  [ '0.00178684', '99.99000000' ],
+  [ '0.00178685', '10.85537516' ],
+  [ '0.00178700', '0.23521517' ],
+  [ '0.00179312', '1156.41500000' ] ]
+ASKS :: 132227424
+[ [ '0.00178668', '412.77676591' ],
+  [ '0.00178684', '99.99000000' ],
+  [ '0.00178685', '10.85537516' ],
+  [ '0.00178700', '0.23521517' ],
+  [ '0.00179312', '1156.41500000' ] ]
+BIDS :: 132227425
+[ [ '0.00178665', '1028.38378169' ],
+  [ '0.00178610', '3400.02648465' ],
+  [ '0.00178600', '177.11520540' ],
+  [ '0.00178278', '179.50264208' ],
+  [ '0.00178277', '10.93802113' ] ]
 ```
 
 Contacts
