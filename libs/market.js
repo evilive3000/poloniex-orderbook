@@ -126,7 +126,7 @@ class Market {
    */
   _onChange(side, rate, amount) {
     const info = {
-      side: side == 0 ? 'asks' : 'bids',
+      side: side === 0 ? 'asks' : 'bids',
       rate,
       amount,
       channel: this.pair

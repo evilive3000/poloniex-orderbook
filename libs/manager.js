@@ -1,13 +1,10 @@
 const _ = require('lodash');
 const wswrapper = require('./ws_wrapper');
-const wsUrl = 'wss://api2.poloniex.com';
 const Market = require('./market');
 const debug = require('debug')('polobook:manager');
 const EventEmitter = require('events');
 
-//if heartbeat is older than TIMEOUT,
-// treat it as socket has died
-//const SOCKET_TIMEOUT = 5000;
+const wsUrl = 'wss://api2.poloniex.com';
 
 class PoloManager extends EventEmitter {
   constructor() {
@@ -46,12 +43,13 @@ class PoloManager extends EventEmitter {
 
   /**
    *
+   * @param options
    * @returns {PoloManager}
    */
-  connect() {
+  connect(options = {}) {
     debug('connect');
 
-    this.socket = new wswrapper(wsUrl);
+    this.socket = new wswrapper(wsUrl, options);
 
     const manager = this;
     const proxyMethod = (method) => function (pair) {
@@ -107,7 +105,7 @@ class PoloManager extends EventEmitter {
    * @param eventName
    * @param info
    */
-  marketEvent(eventName, info){
+  marketEvent(eventName, info) {
     this.emit(eventName, info);
 
     if (eventName === 'error' && info.msg == 'Wrong seq number') {

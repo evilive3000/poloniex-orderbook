@@ -19,7 +19,7 @@ class WsWrapper extends EventEmitter {
 
     this.commandsQueue = [];
     this.channelById = {};
-    this.heartbeat = Date.now() + 4000;
+    //this.heartbeat = Date.now() + 4000;
 
     this.ws = new WebSocket(url, [], options);
 
@@ -27,7 +27,7 @@ class WsWrapper extends EventEmitter {
     this.ws.onopen = (e) => {
       debug('open');
 
-      this.heartbeat = Date.now();
+      //this.heartbeat = Date.now();
       this._keepAliveInterval = setInterval(() => {this.ws.send(".")}, 60000);
       this.state = e.target.readyState;
 
@@ -41,7 +41,7 @@ class WsWrapper extends EventEmitter {
     this.ws.onmessage = (e) => {
       debug('message');
 
-      this.heartbeat = Date.now();
+      //this.heartbeat = Date.now();
 
       if (e.data.length === 0) {
         // is it possible scenario?
@@ -67,24 +67,31 @@ class WsWrapper extends EventEmitter {
         return;
       }
 
-      console.log({cid, msg});
+      console.log({ cid, msg });
     };
 
 
     /** on error */
     this.ws.onerror = (errorEvent) => {
-      debug('error');
+      debug('error', errorEvent.message);
+
+      if (/403/.test(errorEvent.message)) {
+        this.ws.terminate();
+        console.log("Poloniex is protected with CloudFlare & reCaptcha.")
+        console.log("Please set or check request header information to use this lib.");
+        process.exit();
+      }
 
       console.log(errorEvent);
     };
 
     /** on close */
     this.ws.onclose = (closeEvent) => {
-      const {type, wasClean, reason, code} = closeEvent;
+      const { type, wasClean, reason, code } = closeEvent;
 
       clearInterval(this._keepAliveInterval);
 
-      debug('close', {type, wasClean, reason, code});
+      debug('close', { type, wasClean, reason, code });
     }
   }
 
@@ -95,13 +102,13 @@ class WsWrapper extends EventEmitter {
    * @returns {Number}
    */
   send(command, channel) {
-    if (this.state != WebSocket.OPEN) {
+    if (this.state !== WebSocket.OPEN) {
       return this.commandsQueue.push([command, channel]);
     }
 
     debug(command, channel);
 
-    this.ws.send(JSON.stringify({command, channel}));
+    this.ws.send(JSON.stringify({ command, channel }));
   }
 
   /**

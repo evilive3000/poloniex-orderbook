@@ -1,5 +1,5 @@
 const PoloManager = require('../');
-const poloman = new PoloManager().connect();
+const poloman = new PoloManager().connect({ headers: require('./headers.json') });
 
 poloman.on('error', err => console.log(err));
 
@@ -7,7 +7,7 @@ const pairs = ['BTC_ETH', 'USDT_ETH', 'USDT_BTC'];
 const markets = {};
 
 poloman.on('change', info => {
-  const {side, channel} = info;
+  const { side, channel } = info;
   const top5 = markets[channel][side].slice(0, 5);
   console.log(`${channel}.${side}`);
   console.log(top5);

@@ -1,5 +1,5 @@
 const PoloManager = require('../');
-const poloman = new PoloManager().connect();
+const poloman = new PoloManager().connect({ headers: require('./headers.json') });
 
 poloman.on('error', err => console.log(err));
 
