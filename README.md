@@ -1,8 +1,18 @@
 Poloniex Orderbook
 ==================
 
+[![npm](https://img.shields.io/npm/dm/poloniex-orderbook.svg)](https://www.npmjs.com/package/poloniex-orderbook)
+[![GitHub tag](https://img.shields.io/github/tag/evilive3000/poloniex-orderbook.svg)](https://github.com/evilive3000/poloniex-orderbook)
+[![GitHub stars](https://img.shields.io/github/stars/evilive3000/poloniex-orderbook.svg?style=social&label=Star)]()
+
+### !!! Read it !!!
+> Since August 2017 Poloniex added anti-bot protection for their site and websocket connection which were used 
+in this library. If you want to go on with `poloniex-orderbook` you will have to do extra workaround to make it 
+work. Otherwise you're left with another option is to use official poloniex api (which I'm not support here).
+
 Module for creating and maintaining Poloniex's orderbook on server side.
-Starting from `v3.0` I switched from pushAPI to WebScoket based API, it's made intaraction with `poloniex` much faster. 
+ * From `v3.0` I switched from pushAPI to WebScoket based API, it's made intaraction with `poloniex` much faster.
+ * From `v3.2` we have to deal with Poloniex's anti-bot protection. Or refuse to use this lib and return to official API.
 
 Installation
 ------------------
@@ -14,12 +24,27 @@ Usage
 -----
 Requires nodejs => 6.0
 
+Create file `headers.json` and fill it with your `User-Agent` and `cf_clearance` cookie.
+You should grab this information from your browser. 
+```json
+{
+  "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.86 Safari/537.36",
+  "Cookie": "cf_clearance=7332b18714d3aa45aed82424e50cf166d6093c6f-1501832791-1800"
+}
+```
+> As I can suggest this cookie gives you a window in 30 minutes to connects. It's mean you can coonect many times 
+in this time frame, then you have to renew cookie. When ws-connection is set up you can stop worrying about 
+renewing because websocket sends cookies only on connection, so I hope it will last until you decide to reconnect.
+ Yes, it's very inconvenient, but that's all I can offer you now.
+
 The central part of the lib is PoloManager. This class holds socket connection and PairMarket instances, 
 and connects them between.
 
 ```javascript
 const PoloManager = require('poloniex-orderbook');
-const poloman = new PoloManager();
+const poloman = new PoloManager().connect({ 
+  headers: require('./headers.json') 
+});
 
 // call connect to initiate socket connection
 poloman.connect();
@@ -63,7 +88,9 @@ Example
 -------
 ```javascript
 const PoloManager = require('poloniex-orderbook');
-const poloman = new PoloManager().connect();
+const poloman = new PoloManager().connect({ 
+  headers: require('./headers.json') 
+});
 
 poloman.on('error', err => console.log(err));
 
