@@ -1,6 +1,6 @@
 {
   "name": "@btcc_exchange/poloniex-orderbook",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "Poloniex's orderbook manager",
   "main": "index.js",
   "dependencies": {
