@@ -77,7 +77,7 @@ class WsWrapper extends EventEmitter {
 
       if (/403/.test(errorEvent.message)) {
         this.ws.terminate();
-        console.log("Poloniex is protected with CloudFlare & reCaptcha.")
+        console.log("Poloniex is protected with CloudFlare & reCaptcha.");
         console.log("Please set or check request header information to use this lib.");
         process.exit();
       }
@@ -92,7 +92,7 @@ class WsWrapper extends EventEmitter {
       clearInterval(this._keepAliveInterval);
 
       debug('close', { type, wasClean, reason, code });
-    }
+    };
   }
 
   /**
@@ -153,7 +153,7 @@ class WsWrapper extends EventEmitter {
     }
 
     if (arguments.length === 2 && seq === 0) {
-      this.emit('unsubscribed', this.channelById[cid])
+      this.emit('unsubscribed', this.channelById[cid]);
     }
   }
 }

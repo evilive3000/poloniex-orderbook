@@ -97,7 +97,7 @@ class PoloManager extends EventEmitter {
 
     _.keys(this.markets).forEach(channel => {
       this.socket.subscribe(channel);
-    })
+    });
   }
 
   /**

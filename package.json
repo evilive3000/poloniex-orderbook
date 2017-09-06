@@ -1,5 +1,5 @@
 {
-  "name": "poloniex-orderbook",
+  "name": "@btcc_exchange/poloniex-orderbook",
   "version": "3.2.0",
   "description": "Poloniex's orderbook manager",
   "main": "index.js",
@@ -12,7 +12,7 @@
     "eslint": "^4.3.0"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "eslint ."
   },
   "keywords": [
     "poloniex",
@@ -23,12 +23,10 @@
     "exchange",
     "arbitrage"
   ],
-  "author": "evilive3000",
   "license": "ISC",
-  "url": "https://github.com/evilive3000/poloniex-orderbook/issues",
-  "email": "evilive3000@gmail.com",
+  "url": "git@github.com:BTCChina/poloniex-orderbook/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/evilive3000/poloniex-orderbook.git"
+    "url": "git@github.com:BTCChina/poloniex-orderbook.git"
   }
 }
