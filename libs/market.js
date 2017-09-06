@@ -64,6 +64,17 @@ class Market {
     this._onChange(side, rate, amount);
   }
 
+  history(channel, seq, id, side, rate, amount) {
+    this.manager.marketEvent(`history`, {
+      id,
+      channel,
+      seq,
+      side,
+      rate,
+      amount
+    });
+  }
+
   /**
    *
    * @private

@@ -59,7 +59,7 @@ class PoloManager extends EventEmitter {
 
     this.socket.on('initialize', proxyMethod('initialize'));
     this.socket.on('order', proxyMethod('order'));
-    //this.socket.on('history', proxyMethod('history'));
+    this.socket.on('history', proxyMethod('history'));
 
     //this.socket.on('unsubscribed', _.noop)
 

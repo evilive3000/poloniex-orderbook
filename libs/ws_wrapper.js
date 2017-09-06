@@ -148,6 +148,9 @@ class WsWrapper extends EventEmitter {
         if (char == 'i') {
           this.channelById[cid] = data[0].currencyPair;
         }
+        if (char2event[char] === 'history') {
+          console.log('--------------------', this.channelById[cid], seq, data)
+        }
         this.emit(char2event[char], this.channelById[cid], seq, ...data);
       }
     }
