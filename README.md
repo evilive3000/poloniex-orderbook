@@ -1,9 +1,9 @@
 Poloniex Orderbook
 ==================
 
-[![npm](https://img.shields.io/npm/dm/poloniex-orderbook.svg)](https://www.npmjs.com/package/poloniex-orderbook)
-[![GitHub tag](https://img.shields.io/github/tag/evilive3000/poloniex-orderbook.svg)](https://github.com/evilive3000/poloniex-orderbook)
-[![GitHub stars](https://img.shields.io/github/stars/evilive3000/poloniex-orderbook.svg?style=social&label=Star)]()
+[![npm](https://img.shields.io/npm/dm/@btcc_exchange/poloniex-orderbook.svg)](https://www.npmjs.com/package/@btcc_exchange/poloniex-orderbook)
+[![GitHub tag](https://img.shields.io/github/tag/BTCChina/poloniex-orderbook.svg)](https://github.com/BTCChina/poloniex-orderbook)
+[![GitHub stars](https://img.shields.io/github/stars/BTCChina/poloniex-orderbook.svg?style=social&label=Star)]()
 
 ### !!! Read it !!!
 > Since August 2017 Poloniex added anti-bot protection for their site and websocket connection which were used 
@@ -17,7 +17,7 @@ Module for creating and maintaining Poloniex's orderbook on server side.
 Installation
 ------------------
 ```Shell
-$ npm install poloniex-orderbook
+$ npm install @btcc_exchange/poloniex-orderbook
 ```
 
 Usage

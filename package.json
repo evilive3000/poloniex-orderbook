@@ -24,7 +24,6 @@
     "arbitrage"
   ],
   "license": "BSD-2-Clause",
-  "url": "git@github.com:BTCChina/poloniex-orderbook/issues",
   "repository": {
     "type": "git",
     "url": "git@github.com:BTCChina/poloniex-orderbook.git"
