@@ -91,6 +91,8 @@ class WsWrapper extends EventEmitter {
 
       clearInterval(this._keepAliveInterval);
 
+      this.emit('close')
+
       debug('close', { type, wasClean, reason, code });
     };
   }
