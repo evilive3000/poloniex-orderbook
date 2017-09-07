@@ -25,7 +25,7 @@ class Market {
     // will be set True if it's valid
     this.validPair = null;
     this._initTimeout = setTimeout(() => {
-      this.setValid(false)
+      this.setValid(false);
     }, TIMEOUT * 1000);
   }
 
@@ -64,6 +64,17 @@ class Market {
     this._onChange(side, rate, amount);
   }
 
+  history(channel, seq, id, side, rate, amount) {
+    this.manager.marketEvent(`history`, {
+      id,
+      channel,
+      seq,
+      side,
+      rate,
+      amount
+    });
+  }
+
   /**
    *
    * @private
@@ -86,11 +97,11 @@ class Market {
   }
 
   get asks() {
-    return this.orderList[0]
+    return this.orderList[0];
   }
 
   get bids() {
-    return this.orderList[1]
+    return this.orderList[1];
   }
 
   /**

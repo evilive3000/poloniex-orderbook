@@ -7,6 +7,7 @@
   "rules": {
     "semi": ["error", "always", {"omitLastInOneLineBlock": true}],
     "no-var": ["error"],
-    "prefer-const": ["error"]
+    "prefer-const": ["error"],
+    "no-console": 0
   }
 }

@@ -59,7 +59,8 @@ class PoloManager extends EventEmitter {
 
     this.socket.on('initialize', proxyMethod('initialize'));
     this.socket.on('order', proxyMethod('order'));
-    //this.socket.on('history', proxyMethod('history'));
+    this.socket.on('history', proxyMethod('history'));
+    this.socket.on('close', this.restartConnection.bind(this));
 
     //this.socket.on('unsubscribed', _.noop)
 
@@ -97,7 +98,7 @@ class PoloManager extends EventEmitter {
 
     _.keys(this.markets).forEach(channel => {
       this.socket.subscribe(channel);
-    })
+    });
   }
 
   /**
